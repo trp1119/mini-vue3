@@ -1,6 +1,24 @@
 var Vue = (function (exports) {
     'use strict';
 
+    /**
+     * 判断是否为一个数组
+     */
+    var isArray = Array.isArray;
+    /**
+     * 判断是否为一个对象
+     * @param value
+     * @returns
+     */
+    var isObject = function (value) { return value !== null && typeof value === 'object'; };
+    /**
+     * 对比两个数据是否发生改变
+     * @param value
+     * @param oldValue
+     * @returns
+     */
+    var hasChanged = function (value, oldValue) { return !Object.is(value, oldValue); };
+
     /******************************************************************************
     Copyright (c) Microsoft Corporation.
 
@@ -62,11 +80,6 @@ var Vue = (function (exports) {
         return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
     };
 
-    /**
-     * 判断是否为一个数组
-     */
-    var isArray = Array.isArray;
-
     var createDep = function (effects) {
         var dep = new Set(effects);
         return dep;
@@ -114,6 +127,7 @@ var Vue = (function (exports) {
      * @param dep
      */
     function trackEffects(dep) {
+        console.log('用 dep 一次跟踪指定 key 的所有 effect');
         dep.add(activeEffect);
     }
     /**
@@ -168,6 +182,7 @@ var Vue = (function (exports) {
             var result = Reflect.get(target, key, receiver);
             // 收集依赖
             track(target, key);
+            console.log('reactive 的收集---');
             return result;
         };
     }
@@ -177,6 +192,7 @@ var Vue = (function (exports) {
             var result = Reflect.set(target, key, value, receiver);
             // 触发依赖
             trigger(target, key);
+            console.log('reactive 的释放---');
             return result;
         };
     }
@@ -198,9 +214,77 @@ var Vue = (function (exports) {
         proxyMap.set(target, proxy);
         return proxy;
     }
+    var toReactive = function (value) {
+        return isObject(value) ? reactive(value) : value;
+    };
+
+    function ref(value) {
+        return createRef(value, false);
+    }
+    function createRef(rawValue, shallow) {
+        if (isRef(rawValue)) {
+            return rawValue;
+        }
+        else {
+            return new RefImpl(rawValue, shallow);
+        }
+    }
+    /**
+     * 是否为 ref
+     * @param r
+     * @returns
+     */
+    function isRef(r) {
+        return !!(r && r.__isRef === true);
+    }
+    var RefImpl = /** @class */ (function () {
+        function RefImpl(value, __v_isShallow) {
+            this.__v_isShallow = __v_isShallow;
+            this.dep = undefined;
+            this.__isRef = true;
+            this._rawValue = value;
+            this._value = __v_isShallow ? value : toReactive(value);
+        }
+        Object.defineProperty(RefImpl.prototype, "value", {
+            get: function () {
+                trackRefValue(this);
+                return this._value;
+            },
+            set: function (newValue) {
+                if (hasChanged(newValue, this._rawValue)) {
+                    this._rawValue = newValue;
+                    this._value = toReactive(newValue);
+                    triggerRefValue(this);
+                }
+            },
+            enumerable: false,
+            configurable: true
+        });
+        return RefImpl;
+    }());
+    /**
+     * 收集依赖
+     * @param ref
+     */
+    function trackRefValue(ref) {
+        if (activeEffect) {
+            console.log('ref 的收集---');
+            trackEffects(ref.dep || (ref.dep = createDep()));
+        }
+    }
+    /**
+     * 释放依赖
+     * @param ref
+     */
+    function triggerRefValue(ref) {
+        if (ref.dep) {
+            triggerEffects(ref.dep);
+        }
+    }
 
     exports.effect = effect;
     exports.reactive = reactive;
+    exports.ref = ref;
 
     return exports;
 

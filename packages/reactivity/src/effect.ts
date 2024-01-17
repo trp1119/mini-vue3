@@ -10,7 +10,7 @@ export function effect<T = any>(fn: () => T) {
   _effect.run()
 }
 
-let activeEffect: ReactiveEffect | undefined
+export let activeEffect: ReactiveEffect | undefined
 
 export class ReactiveEffect<T = any> {
   constructor(public fn: () => T) {}
@@ -52,7 +52,8 @@ export function track(target: object, key: unknown) {
  * 利用 dep 一次跟踪指定 key 的所有 effect
  * @param dep
  */
-function trackEffects(dep: Dep) {
+export function trackEffects(dep: Dep) {
+  console.log('用 dep 一次跟踪指定 key 的所有 effect')
   dep.add(activeEffect!)
 }
 
@@ -78,7 +79,7 @@ export function trigger(target: object, key: unknown, newValue: unknown) {
  * 依次触发 dep 中保存的依赖
  * @param dep
  */
-function triggerEffects(dep: Dep) {
+export function triggerEffects(dep: Dep) {
   const effects = isArray(dep) ? dep : [...dep]
 
   // 依次触发依赖

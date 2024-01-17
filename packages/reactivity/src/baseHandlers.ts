@@ -8,6 +8,7 @@ function createGetter() {
 
     // 收集依赖
     track(target, key)
+    console.log('reactive 的收集---')
 
     return result
   }
@@ -21,6 +22,7 @@ function createSetter() {
 
     // 触发依赖
     trigger(target, key, value)
+    console.log('reactive 的释放---')
 
     return result
   }
