@@ -57,7 +57,7 @@ class RefImpl<T> {
  * 收集依赖
  * @param ref 
  */
-function trackRefValue (ref: RefImpl<unknown>) {
+export function trackRefValue (ref: RefImpl<unknown>) {
   if (activeEffect) {
     console.log('ref 的收集---')
     trackEffects(ref.dep || (ref.dep = createDep()))
@@ -68,7 +68,7 @@ function trackRefValue (ref: RefImpl<unknown>) {
  * 释放依赖
  * @param ref 
  */
-function triggerRefValue (ref: RefImpl<unknown>) {
+export function triggerRefValue (ref: RefImpl<unknown>) {
   if (ref.dep) {
     triggerEffects(ref.dep)
   }

@@ -15,3 +15,9 @@ export const isObject = (value: unknown) => value !== null && typeof value === '
  * @returns 
  */
 export const hasChanged = (value: any, oldValue: any) => !Object.is(value, oldValue)
+/**
+ * 判断是否是一个方法
+ * @param value 
+ * @returns 
+ */
+export const isFunction = (value: unknown) => typeof value === 'function'
